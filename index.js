@@ -3,11 +3,6 @@ const puppeteer = require('puppeteer');
 const app = express();
 
 app.use(async (req, res) => {
-    const url = req.query.url;
-
-    if (!url) {
-        return res.send('Please provide URL as GET parameter, for example: <a href="/?url=https://example.com">?url=https://example.com</a>');
-    }
 
     const browser = await puppeteer.launch({
         args: ['--no-sandbox']
@@ -16,15 +11,18 @@ app.use(async (req, res) => {
     // ページを作成する
     const page = await browser.newPage();
 
-    // 解像度をセットする
-    // await page.setViewport({ width: 720, height: 600 })
+    await page.goto("https://www.yahoo.co.jp");
 
-    await page.goto(url);
-    const imageBuffer = await page.screenshot();
+    var data = await page.$eval("#topicsfb", item => {
+        return item.textContent;
+    });
+
+    console.log("---")
+    console.log(data)
+
     browser.close();
 
-    res.set('Content-Type', 'image/png');
-    res.send(imageBuffer);
+    res.send(data)
 });
 
 const server = app.listen(process.env.PORT || 8080, err => {
